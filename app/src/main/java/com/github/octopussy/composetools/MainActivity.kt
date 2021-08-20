@@ -15,22 +15,59 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.lifecycleScope
 import com.github.octopussy.composetools.ui.theme.ComposeToolsTheme
+import com.google.accompanist.insets.ExperimentalAnimatedInsets
+import com.google.accompanist.insets.navigationBarsWithImePadding
+import com.google.accompanist.insets.statusBarsPadding
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
+
+    private val scrollEventFlow = MutableSharedFlow<ScrollToEvent>()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        //WindowCompat.setDecorFitsSystemWindows(window, false)
+
         setContent {
             ComposeToolsTheme {
+                // ProvideWindowInsets(windowInsetsAnimationsEnabled = true) {
+                val fm = LocalFocusManager.current
                 // A surface container using the 'background' color from the theme
                 Surface(color = MaterialTheme.colors.background) {
-                    Greeting("Android")
+                    //CustomModifierTest()
+                    Column {
+                        Button(onClick = {
+                            lifecycleScope.launch {
+                                scrollEventFlow.emit(ScrollToEvent.First)
+                            }
+                        }) {
+                            Text(text = "First")
+                        }
+                        Button(onClick = {
+                            lifecycleScope.launch {
+                                scrollEventFlow.emit(ScrollToEvent.Second)
+                            }
+                        }) {
+                            Text(text = "Second")
+                        }
+
+                        ValidationTest(scrollEventFlow)
+                    }
+
+                    //Greeting("Android")
                 }
+                //   }
             }
         }
     }
@@ -71,7 +108,7 @@ fun ValidationTest(scrollToEvent: Flow<ScrollToEvent>) {
     LaunchedEffect(scrollToEvent) {
         scope.launch {
             scrollToEvent.collect { event ->
-                Log.d(TAG, "Collected: $event")
+                Log.d("MainActivity", "Collected: $event")
                 when (event) {
                     ScrollToEvent.First -> firstRequester.bringIntoView()
                     ScrollToEvent.Second -> secondRequester.bringIntoView()

@@ -3,31 +3,61 @@ plugins {
     id 'kotlin-android'
 }
 
+kotlin {
+    explicitApi()
+}
+
+ext {
+    compose_version = '1.0.1'
+    accompanist_version = '0.16.1'
+}
+
 android {
-    compileSdk 30
+    compileSdk 31
 
     defaultConfig {
         minSdk 21
-        targetSdk 30
-        versionCode 1
-        versionName "1.0"
+        targetSdk 31
+       // versionCode 1
+      //  versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        consumerProguardFiles "consumer-rules.pro"
+     //   consumerProguardFiles "consumer-rules.pro"
     }
 
+/*
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+*/
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+
+    buildFeatures {
+        buildConfig false
+        compose true
+    }
+
     kotlinOptions {
         jvmTarget = '1.8'
+    }
+
+    composeOptions {
+        kotlinCompilerExtensionVersion compose_version
+        kotlinCompilerVersion '1.5.21'
+    }
+
+    packagingOptions {
+        // Some of the META-INF files conflict with coroutines-test. Exclude them to enable
+        // our test APK to build (has no effect on our AARs)
+        excludes += "/META-INF/AL2.0"
+        excludes += "/META-INF/LGPL2.1"
     }
 }
 
@@ -37,13 +67,15 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.3.1'
     implementation 'com.google.android.material:material:1.4.0'
 
+
+
     implementation "androidx.compose.ui:ui:$compose_version"
     implementation "androidx.compose.material:material:$compose_version"
     implementation "androidx.compose.ui:ui-tooling-preview:$compose_version"
 
-    implementation "com.google.accompanist:accompanist-insets:0.16.1"
-    implementation "com.google.accompanist:accompanist-insets-ui:0.16.1"
-    implementation "com.google.accompanist:accompanist-systemuicontroller:0.16.1"
+    implementation "com.google.accompanist:accompanist-insets:$accompanist_version"
+    implementation "com.google.accompanist:accompanist-insets-ui:$accompanist_version"
+    implementation "com.google.accompanist:accompanist-systemuicontroller:$accompanist_version"
 
 
     testImplementation 'junit:junit:4.13.2'
