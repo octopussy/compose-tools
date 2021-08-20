@@ -2,14 +2,14 @@ package com.github.octopussy.composetools
 
 import android.os.Bundle
 import android.util.Log
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.size
+import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.*
+import androidx.compose.material.Button
+import androidx.compose.material.Text
+import androidx.compose.material.TextField
 import androidx.compose.runtime.*
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -20,17 +20,14 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.lifecycleScope
 import com.github.octopussy.composetools.ui.theme.ComposeToolsTheme
 import com.google.accompanist.insets.ExperimentalAnimatedInsets
-import com.google.accompanist.insets.navigationBarsWithImePadding
-import com.google.accompanist.insets.statusBarsPadding
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
-class MainActivity : ComponentActivity() {
+class MainActivity : AppCompatActivity() {
 
     private val scrollEventFlow = MutableSharedFlow<ScrollToEvent>()
 
@@ -44,29 +41,13 @@ class MainActivity : ComponentActivity() {
                 // ProvideWindowInsets(windowInsetsAnimationsEnabled = true) {
                 val fm = LocalFocusManager.current
                 // A surface container using the 'background' color from the theme
-                Surface(color = MaterialTheme.colors.background) {
+              //  Surface(color = MaterialTheme.colors.background) {
                     //CustomModifierTest()
-                    Column {
-                        Button(onClick = {
-                            lifecycleScope.launch {
-                                scrollEventFlow.emit(ScrollToEvent.First)
-                            }
-                        }) {
-                            Text(text = "First")
-                        }
-                        Button(onClick = {
-                            lifecycleScope.launch {
-                                scrollEventFlow.emit(ScrollToEvent.Second)
-                            }
-                        }) {
-                            Text(text = "Second")
-                        }
 
-                        ValidationTest(scrollEventFlow)
-                    }
+                    ValidationTest(scrollEventFlow)
 
                     //Greeting("Android")
-                }
+             //   }
                 //   }
             }
         }
@@ -120,23 +101,20 @@ fun ValidationTest(scrollToEvent: Flow<ScrollToEvent>) {
     val state = rememberScrollState()
     var myRect by remember { mutableStateOf(Rect.Zero) }
 
+    Box {
+        ProvideScrollHelper(state, myRect) {
+            Column(
+                Modifier
+                    .verticalScroll(state)
+                    .padding(32.dp)
+                    //  .navigationBarsWithImePadding()
+                    //    .statusBarsPadding()
+                    .onGloballyPositioned {
+                        myRect = it.boundsInWindow()
+                        //it.size
+                    }
+            ) {
 
-
-    ProvideScrollHelper(state, myRect) {
-        Column(
-            Modifier
-                .verticalScroll(state)
-                .navigationBarsWithImePadding()
-                .statusBarsPadding()
-                .onGloballyPositioned {
-                    myRect = it.boundsInWindow()
-                    //it.size
-                }
-        ) {
-            Spacer(modifier = Modifier.size(200.dp))
-            Text("-Outer", color = Color.Black)
-            Spacer(modifier = Modifier.size(200.dp))
-            Column {
 
                 Text("-----------Inner", color = Color.Black)
 

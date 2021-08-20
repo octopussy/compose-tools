@@ -7,10 +7,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.focus.FocusEventModifier
 import androidx.compose.ui.focus.FocusState
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.OnGloballyPositionedModifier
-import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.ui.layout.positionInWindow
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.IntSize
 import kotlinx.coroutines.launch
@@ -79,14 +81,14 @@ fun Modifier.scrollHelper(
 
     var focused by remember { mutableStateOf(false) }
     var verticalPos by remember { mutableStateOf(0) }
-    var size by remember { mutableStateOf(IntSize.Zero) }
+
+    var parentRect by remember { mutableStateOf(Rect.Zero) }
+    var viewSize by remember { mutableStateOf(IntSize.Zero) }
 
     val coroutineScope = rememberCoroutineScope()
-
     val scrollState = LocalScrollContainer.current.scrollState
-    val parentRect = LocalScrollContainer.current.parentRect
 
-    Log.d(TAG, " ---- " + parentRect.toString())
+    val density = LocalDensity.current
 
     fun scrollTo() {
         Log.d(TAG, parentRect.toString())
@@ -96,14 +98,16 @@ fun Modifier.scrollHelper(
     }
 
     fun scrollIfNeeded() {
-        val viewportTop = scrollState.value
-        val viewportBottom = scrollState.value + parentRect.height
+        val viewportTop = 0//scrollState.value
+        val viewportBottom = viewportTop + parentRect.height
 
-        val top = verticalPos + viewportTop
-        val bottom = top + size.height
-        val fullyVisible = top > viewportTop && bottom < viewportBottom
+        val top = verticalPos// + viewportTop
+        val bottom = top + viewSize.height
+        val fullyVisible = top > 0 && bottom < parentRect.height
 
-        if (focused && !fullyVisible) {
+        Log.d(TAG, "$verticalPos ($top-$bottom) ($viewportTop-$viewportBottom)")
+
+        if (!fullyVisible) {
             scrollTo()
         }
     }
@@ -120,10 +124,12 @@ fun Modifier.scrollHelper(
 
 
     LaunchedEffect(focused, parentRect) {
-        // Log.d(TAG, "testModifier focused '${focused}'")
-        //   Log.d(TAG, "$parentRect $size $focused ${parentRect.bottom}")
+        //Log.d(TAG, "1) focused '${focused}'")
+        //Log.d(TAG, "2) $parentRect $viewSize $focused")
 
-        scrollIfNeeded()
+        if (focused) {
+            scrollIfNeeded()
+        }
     }
 
     /*val modifier = remember { RelocationRequesterModifier() }
@@ -134,14 +140,39 @@ fun Modifier.scrollHelper(
     modifier*/
 
     return@composed object : FocusEventModifier, OnGloballyPositionedModifier {
+
+        lateinit var coordinates: LayoutCoordinates
+
         override fun onFocusEvent(focusState: FocusState) {
             focused = focusState.isFocused
+
         }
 
         override fun onGloballyPositioned(coordinates: LayoutCoordinates) {
-            verticalPos = coordinates.positionInRoot().y.toInt()
-            size = coordinates.size
-            //Log.d(TAG, "onGloballyPositioned '$verticalPos' $size")
+            this.coordinates = coordinates
+
+            val root = coordinates.findRoot()
+
+            val dens = density.density
+            parentRect = Rect(
+                Offset.Zero, Offset(root.size.width.toFloat(), root.size.height.toFloat()))
+
+            verticalPos = coordinates.positionInWindow().y.toInt()
+            viewSize = coordinates.size
+           // Log.d(TAG, "onGloballyPositioned '$verticalPos' $viewSize")
+          //  Log.d(TAG, "root: $parentRect")
         }
+
+        private fun LayoutCoordinates.findRoot(): LayoutCoordinates {
+            var root = this
+            var parent = root.parentLayoutCoordinates
+            while (parent != null) {
+                root = parent
+                parent = root.parentLayoutCoordinates
+            }
+
+            return root
+        }
+
     }
 }
