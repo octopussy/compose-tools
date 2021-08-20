@@ -20,7 +20,7 @@ import kotlinx.coroutines.launch
 private const val TAG = "ScrollHelper"
 
 @Stable
-class ScrollContainer(val scrollState: ScrollState, val parentRect: Rect)
+class ScrollContainer(val scrollState: ScrollState)
 
 class ScrollRequester {
 
@@ -42,7 +42,6 @@ val LocalScrollContainer =
 @Composable
 fun ProvideScrollHelper(
     scrollState: ScrollState,
-    parentRect: Rect,
     content: @Composable () -> Unit
 ) {
 
@@ -63,12 +62,7 @@ fun ProvideScrollHelper(
         }
     }
 
-    CompositionLocalProvider(
-        LocalScrollContainer provides ScrollContainer(
-            scrollState,
-            parentRect
-        )
-    ) {
+    CompositionLocalProvider(LocalScrollContainer provides ScrollContainer(scrollState)) {
         content()
     }
 }

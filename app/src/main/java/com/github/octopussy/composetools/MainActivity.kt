@@ -99,20 +99,16 @@ fun ValidationTest(scrollToEvent: Flow<ScrollToEvent>) {
     }
 
     val state = rememberScrollState()
-    var myRect by remember { mutableStateOf(Rect.Zero) }
 
     Box {
-        ProvideScrollHelper(state, myRect) {
+        ProvideScrollHelper(state) {
             Column(
                 Modifier
                     .verticalScroll(state)
                     .padding(32.dp)
                     //  .navigationBarsWithImePadding()
                     //    .statusBarsPadding()
-                    .onGloballyPositioned {
-                        myRect = it.boundsInWindow()
-                        //it.size
-                    }
+
             ) {
 
 
